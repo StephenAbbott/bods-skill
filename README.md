@@ -1,6 +1,6 @@
-# BODS Skill for Claude
+# BODS skill for Claude
 
-A Claude skill providing expert reference for the **Beneficial Ownership Data Standard (BODS) v0.4**, developed by [Open Ownership](https://www.openownership.org).
+A Claude skill providing expert reference for the **Beneficial Ownership Data Standard (BODS) v0.4**, developed by [Open Ownership](https://www.openownership.org) and [Open Data Services](https://opendataservices.coop/).
 
 ## What this skill does
 
