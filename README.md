@@ -45,6 +45,11 @@ bods-skill/
 - Standard: https://standard.openownership.org/en/0.4.0/
 - Schema reference: https://standard.openownership.org/en/latest/standard/reference.html
 - GitHub: https://github.com/openownership/data-standard
+- Data review tool: https://datareview.openownership.org/
+- Visualisation library: https://github.com/openownership/visualisation-tool
+- Analysis notebooks and dashboards: https://github.com/openownership/bodsanalysis
+- Beneficial ownership data analysis tools: https://github.com/openownership/bodsdata
+- RDF vocabulary: https://github.com/openownership/bodsld
 
 ## License
 
