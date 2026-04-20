@@ -217,8 +217,130 @@ Publish a new Statement with the same `recordId` and set `recordStatus: "updated
 
 Detailed documentation is in `references/bods.md`. Read it when you need full field-level schema details, all codelist values, or extended examples.
 
-**Official resources:**
-- Standard: https://standard.openownership.org/en/0.4.0/
-- Schema reference: https://standard.openownership.org/en/latest/standard/reference.html
-- Changelog: https://standard.openownership.org/en/0.4.0/standard/changelog.html
-- GitHub: https://github.com/openownership/data-standard
+---
+
+## Tools & Resources
+
+### Official BODS Standard
+
+| Resource | URL |
+|---|---|
+| Standard documentation (v0.4) | https://standard.openownership.org/en/0.4.0/ |
+| Schema reference | https://standard.openownership.org/en/latest/standard/reference.html |
+| Changelog | https://standard.openownership.org/en/0.4.0/standard/changelog.html |
+| GitHub (data-standard) | https://github.com/openownership/data-standard |
+| OpenOwnership website | https://www.openownership.org/en/ |
+| OpenOwnership publications | https://www.openownership.org/en/publications/ |
+
+---
+
+### Data Review Tool (CoVE-BODS): Validation
+
+The **BODS Data Review Tool** (CoVE-BODS) validates BODS JSON data against the schema and runs additional compliance checks.
+
+| Resource | URL |
+|---|---|
+| OpenOwnership publication | https://www.openownership.org/en/publications/beneficial-ownership-data-standard-data-review-tool/ |
+| Web validator | https://datareview.openownership.org/ |
+| GitHub (cove-bods) | https://github.com/openownership/cove-bods |
+| GitHub (lib-cove-bods) | https://github.com/openownership/lib-cove-bods |
+| PyPI (libcovebods) | https://pypi.org/project/libcovebods/ |
+
+The web tool accepts BODS JSON directly and returns validation results. For CLI use:
+```bash
+pip install libcovebods
+libcovebods your-data.json
+```
+Checks: required fields, valid enums, internal reference integrity, version compliance (BODS 0.1–0.4), plus 26 additional regulatory compliance assessments.
+
+---
+
+### Visualisation Library: Rendering Ownership Diagrams
+
+The **BODS Visualisation Library** implements the Beneficial Ownership Visualisation System (BOVS) for rendering BODS-structured data as interactive ownership diagrams. In production use in the registers of Armenia, Bermuda, and Botswana.
+
+| Resource | URL |
+|---|---|
+| OpenOwnership publication | https://www.openownership.org/en/publications/beneficial-ownership-data-standard-visualisation-library/ |
+| GitHub (visualisation-tool / bods-dagre) | https://github.com/openownership/visualisation-tool |
+| npm package | https://www.npmjs.com/package/@openownership/bods-dagre |
+| Visualisation spec | https://github.com/openownership/visualisation-tool/blob/main/docs/spec.md |
+
+```bash
+npm install @openownership/bods-dagre
+```
+Input: JSON array of BODS statements. Output: SVG/canvas network diagram with person nodes, entity nodes, and directed ownership/control edges. Handles temporal data — filters to a snapshot at a given date.
+
+---
+
+### Analysis Notebooks & Dashboards (bodsanalysis)
+
+**bodsanalysis** provides Jupyter notebooks and Python functions for reading, summarising, and analysing BODS data. Runs on local Jupyter, Deepnote, or Google Colab.
+
+| Resource | URL |
+|---|---|
+| OpenOwnership publication | https://www.openownership.org/en/publications/analysis-notebooks-and-dashboards-for-beneficial-ownership-data-standard-bods-data/ |
+| GitHub (bodsanalysis) | https://github.com/openownership/bodsanalysis |
+
+Key notebooks: `latvia_demo.ipynb` (Latvia register), `Insights_UK_PSC_BODS-02.ipynb` (UK PSC data). Note: currently targets BODS 0.2 — adapt field names for 0.4.
+
+---
+
+### Data Processing Tools (bodsdata)
+
+**bodsdata** converts BODS JSON into flat formats for database and tabular analysis.
+
+| Resource | URL |
+|---|---|
+| OpenOwnership publication | https://www.openownership.org/en/publications/beneficial-ownership-data-analysis-tools/ |
+| BODS data explorer | https://bods-data.openownership.org/ |
+| GitHub (bodsdata) | https://github.com/openownership/bodsdata |
+
+Output formats: CSV/TSV, SQLite, Parquet, PostgreSQL dump. Also runs consistency checks (required fields, duplicate statement IDs, broken references). The **BODS data explorer** hosts processed datasets from multiple jurisdictions for exploring real-world BODS data.
+
+---
+
+### RDF Vocabulary (bodsld): Linked Data & SPARQL
+
+The **BODS RDF Vocabulary** enables querying BODS data as Linked Data using SPARQL, supporting cross-dataset linking and semantic reasoning over ownership graphs.
+
+| Resource | URL |
+|---|---|
+| OpenOwnership publication | https://www.openownership.org/en/publications/rdf-vocabulary-for-the-beneficial-ownership-data-standard/ |
+| RDF vocabulary documentation | https://vocab.openownership.org/ |
+| RDF terms | https://vocab.openownership.org/terms/ |
+| BODS RDF Turtle 0.4 | https://vocab.openownership.org/terms/bods-vocabulary-0.4.0.ttl |
+| GitHub (bodsld) | https://github.com/openownership/bodsld |
+
+---
+
+### BODS Conversion Repositories (Stephen Abbott Pugh)
+
+A suite of open-source converters between BODS v0.4 and other data formats/platforms:
+
+| Repository | Conversion | URL |
+|---|---|---|
+| bods-ftm | BODS 0.4 ↔ FollowTheMoney (bidirectional) | https://github.com/StephenAbbott/bods-ftm |
+| bods-aml-ai | BODS 0.4 → Google AML AI | https://github.com/StephenAbbott/bods-aml-ai |
+| bods-neo4j | BODS 0.4 ↔ Neo4j graph database (bidirectional) | https://github.com/StephenAbbott/bods-neo4j |
+| bods-gql | BODS 0.4 → Google BigQuery / GQL (ISO/IEC 39075) | https://github.com/StephenAbbott/bods-gql |
+| bods-brightquery | BrightQuery → BODS 0.4 | https://github.com/StephenAbbott/bods-brightquery |
+| bods-kyckr | Kyckr → BODS 0.4 | https://github.com/StephenAbbott/bods-kyckr |
+| bods-icij-offshoreleaks | ICIJ Offshore Leaks → BODS 0.4 | https://github.com/StephenAbbott/bods-icij-offshoreleaks |
+| bods-opencorporates | OpenCorporates → BODS 0.4 | https://github.com/StephenAbbott/bods-opencorporates |
+
+---
+
+### Testing & Validation Libraries
+
+| Resource | URL |
+|---|---|
+| bods-fixtures (canonical test fixture pack) | https://github.com/StephenAbbott/bods-fixtures |
+| bods-v04-fixtures (PyPI) | https://pypi.org/project/bods-v04-fixtures/ |
+| pytest-bods-fixtures (pytest plugin) | https://github.com/StephenAbbott/pytest-bods-fixtures |
+| pytest-bods-v04-fixtures (PyPI) | https://pypi.org/project/pytest-bods-v04-fixtures/ |
+| bods-validator (validation + visualisation tool) | https://github.com/StephenAbbott/bods-validator |
+
+**bods-fixtures** (`pip install bods-v04-fixtures`) — canonical BODS v0.4 test fixtures: curated statement bundles for direct ownership, circular ownership, and anonymous persons. Single source of truth across the BODS adapter ecosystem.
+
+**pytest-bods-fixtures** (`pip install pytest-bods-v04-fixtures`) — pytest plugin wrapping the fixture pack as an auto-parametrized `bods_fixture`, running one test per conformance case without boilerplate.
