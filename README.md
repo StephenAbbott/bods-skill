@@ -39,11 +39,20 @@ bods-skill/
 - Source/provenance structure
 - Full JSON examples: direct ownership, record updates, unknown beneficial owners
 - Validation tooling references
+- Primer, About and Governance pages (2026 documentation rewrite)
+- BODS data model UML: core objects vs. Declaration/Record pseudo-objects
 
 ## Official BODS resources
 
-- Standard: https://standard.openownership.org/en/0.4.0/
-- Schema reference: https://standard.openownership.org/en/latest/standard/reference.html
+> **Note:** the default and `latest` documentation URLs now resolve to the `main` branch, not the `0.4.0` release branch. The 2026 Primer/About/Governance rewrite was merged to `main` and not back-ported to `0.4.0` (which remains the frozen, translated v0.4 release).
+
+- Standard (current — `main` branch): https://standard.openownership.org/en/main/
+- v0.4 release branch (frozen, translated): https://standard.openownership.org/en/0.4.0/
+- Schema reference: https://standard.openownership.org/en/main/standard/reference.html
+- Primer: https://standard.openownership.org/en/main/primer/index.html
+- Data model (UML): https://standard.openownership.org/en/main/primer/datamodel.html
+- Governance and development: https://standard.openownership.org/en/main/about/governance.html
+- BODS development handbook: https://openownership.github.io/bods-dev-handbook/
 - GitHub: https://github.com/openownership/data-standard
 - Data review tool: https://datareview.openownership.org/
 - Visualisation library: https://github.com/openownership/visualisation-tool

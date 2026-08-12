@@ -223,14 +223,57 @@ Detailed documentation is in `references/bods.md`. Read it when you need full fi
 
 ### Official BODS Standard
 
+> **Which URL to cite:** the default and `latest` documentation URLs now resolve to the **`main` branch**, not the `0.4.0` release branch. Prefer `/en/main/` for current content; use `/en/0.4.0/` only for the frozen, translated v0.4 release.
+
 | Resource | URL |
 |---|---|
-| Standard documentation (v0.4) | https://standard.openownership.org/en/0.4.0/ |
-| Schema reference | https://standard.openownership.org/en/latest/standard/reference.html |
-| Changelog | https://standard.openownership.org/en/0.4.0/standard/changelog.html |
+| Standard documentation (current — `main`) | https://standard.openownership.org/en/main/ |
+| v0.4 release branch (frozen, translated) | https://standard.openownership.org/en/0.4.0/ |
+| Schema reference | https://standard.openownership.org/en/main/standard/reference.html |
+| Schema browser | https://standard.openownership.org/en/main/standard/schema-browser.html |
+| Changelog | https://standard.openownership.org/en/main/standard/changelog.html |
+| Example data | https://standard.openownership.org/en/main/examples/ |
 | GitHub (data-standard) | https://github.com/openownership/data-standard |
 | OpenOwnership website | https://www.openownership.org/en/ |
 | OpenOwnership publications | https://www.openownership.org/en/publications/ |
+
+---
+
+### Primer, About & Governance (rewritten 2026)
+
+In 2026 Open Ownership and Open Data Services rewrote the BODS **non-normative** documentation (PRs [#754](https://github.com/openownership/data-standard/pull/754), [#762](https://github.com/openownership/data-standard/pull/762)). **No schema, field, codelist or changelog changes** — documentation only, not a version release. Updates were merged to `main` and deliberately **not** back-ported to the `0.4.0` branch, and **not** translated (the v0.4 release itself has Spanish, French and Russian translations).
+
+| Page | URL |
+|---|---|
+| Primer index | https://standard.openownership.org/en/main/primer/index.html |
+| What is beneficial ownership? | https://standard.openownership.org/en/main/primer/whatisbo.html |
+| What is BODS? | https://standard.openownership.org/en/main/primer/whatisbods.html |
+| Key concepts in BODS data | https://standard.openownership.org/en/main/primer/concepts.html |
+| What is the BODS data model? (UML) | https://standard.openownership.org/en/main/primer/datamodel.html |
+| About BODS | https://standard.openownership.org/en/main/about/index.html |
+| Governance and development | https://standard.openownership.org/en/main/about/governance.html |
+| Credits | https://standard.openownership.org/en/main/about/credits.html |
+| BODS development handbook | https://openownership.github.io/bods-dev-handbook/ |
+| Dev handbook repo | https://github.com/openownership/bods-dev-handbook |
+| Feature tracker | https://github.com/openownership/data-standard/projects/4 |
+| Implementation proposals | https://github.com/openownership/data-standard/discussions/categories/feature-implementation |
+
+**Current status**: BODS v0.4 was released May 2024. Both the README and About page state that **BODS is not in active development at the moment**. Implementers should be aware that future changes may be made before a v1.0 release; from v1.0 onwards, structural or major definitional changes will only follow consultation.
+
+**The data model page** introduces a UML class diagram and makes an important distinction:
+
+- **Core objects** (implemented in JSON Schema): Statements, Persons, Entities, Relationships, Interests
+- **Pseudo-objects** (implicit — *not* implemented as objects in JSON Schema): **Declaration** and **Record**. The `declaration` / `declarationSubject` properties and `recordId` / `recordType` / `recordStatus` are implemented as properties *of Statements*, though they conceptually belong to these pseudo-objects.
+
+Other key points from the rewritten page:
+
+- A Relationship's `interestedParty` may be a Person or an Entity; its `subject` is always an Entity
+- The model supports four network shapes: vehicles a person controls, people controlling a vehicle, people controlling a set of vehicles, and corporate structures without people
+- Statements enable **bi-temporal modelling** — ledger-like histories answering "who knew what, when?" Statements from different sources may conflict or overlap by design
+- **No intrinsic definition of 'beneficial owner'** is embedded in the model. It describes networks of ownership, control and benefit; `beneficialOwnershipOrControl: true` marks interests known to constitute BO under a given definition. This is why BODS works across jurisdictions with differing thresholds
+- The model is **not an ERD** — a database need not have a statement table to export BODS Statements, though the model can inform system design
+
+**Governance**: feature requests via [issue templates](https://github.com/openownership/data-standard/issues/new/choose); feature development tickets framed as problem statements on the [feature tracker](https://github.com/openownership/data-standard/projects/4); implementation proposals via GitHub Discussions with a minimum two-week community review (no consensus → proposal suspended); per-version release trackers with two-week review windows. Development aims to meet the five [OpenStand principles](https://open-stand.org/about-us/principles/). Technical contact: tech@openownership.org.
 
 ---
 
@@ -328,6 +371,10 @@ A suite of open-source converters between BODS v0.4 and other data formats/platf
 | bods-kyckr | Kyckr → BODS 0.4 | https://github.com/StephenAbbott/bods-kyckr |
 | bods-icij-offshoreleaks | ICIJ Offshore Leaks → BODS 0.4 | https://github.com/StephenAbbott/bods-icij-offshoreleaks |
 | bods-opencorporates | OpenCorporates → BODS 0.4 | https://github.com/StephenAbbott/bods-opencorporates |
+| bods-xml | BODS 0.4 → XML (canonical + MRAS preBODS) | https://github.com/StephenAbbott/bods-xml |
+| bods-stream | Live UK PSC stream → BODS v0.4 (web app, SSE) | https://github.com/StephenAbbott/bods-stream |
+| bods-mapper | Shared CH PSC → BODS v0.4 library (used by opencheck + bods-stream) | https://github.com/StephenAbbott/bods-mapper |
+| opencheck | CDD tool: LEI → 29 sources → BODS v0.4 (live demo) | https://github.com/StephenAbbott/opencheck |
 
 ---
 
@@ -340,6 +387,12 @@ A suite of open-source converters between BODS v0.4 and other data formats/platf
 | pytest-bods-fixtures (pytest plugin) | https://github.com/StephenAbbott/pytest-bods-fixtures |
 | pytest-bods-v04-fixtures (PyPI) | https://pypi.org/project/pytest-bods-v04-fixtures/ |
 | bods-validator (validation + visualisation tool) | https://github.com/StephenAbbott/bods-validator |
+
+**opencheck** (https://opencheck.onrender.com/) is a full CDD application — paste a LEI, and it fans out across 29 national and international corporate data sources, maps everything to BODS v0.4, and applies a 12-signal risk layer mirroring the EU AMLA draft CDD RTS conditions (trust/arrangement, non-EU jurisdiction, nominee, ≥3 ownership layers, FATF list, ICIJ Offshore Leaks match, and more). Exports as JSON/JSONL/XML/ZIP. Phase 50 of active development. Uses `bods-mapper` and `bods-dagre`.
+
+**bods-mapper** (https://github.com/StephenAbbott/bods-mapper) is the shared canonical library for mapping UK Companies House PSC events to BODS v0.4. All 86 `natures_of_control` codes → BODS `interestType`. Handles cessation lifecycle (`recordStatus: "closed"`, `replacesStatements`). Used by both opencheck and bods-stream to ensure consistent mapping. Core function: `map_psc_event(event)`.
+
+**bods-stream** is a live web application (not a library) — it consumes the Companies House PSC Streaming API and converts each filing event to BODS v0.4 statements in real time, displayed as BOVS diagrams. Live at https://bods-stream.onrender.com/. It demonstrates BODS's append-only change model (`recordStatus` new/updated/closed, `replacesStatements`) in action — the only public real-time beneficial ownership feed anywhere. Depends on [bods-mapper](https://github.com/StephenAbbott/bods-mapper), a shared CH → BODS v0.4 mapping library also used by [OpenCheck](https://github.com/StephenAbbott/opencheck).
 
 **bods-fixtures** (`pip install bods-v04-fixtures`) — canonical BODS v0.4 test fixtures: curated statement bundles for direct ownership, circular ownership, and anonymous persons. Single source of truth across the BODS adapter ecosystem.
 
