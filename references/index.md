@@ -12,11 +12,8 @@ Covers:
 - Person Statement field reference
 - Relationship Statement field reference
 - Interests object and share proportions
-- All codelists (interest types, record status, entity types, person types)
+- Codelists (interest types, unspecified reasons, name types, entity types and subtypes, person types, record status/type, source and address types) — summaries; `schema/codelists/*.csv` in the data-standard repo is authoritative
 - Identifier schemes
 - Source and provenance
-- Complete JSON examples (direct ownership, updates, unknown owners)
+- Complete JSON examples, validated against the v0.4 schema (direct ownership, updates, unknown owners, exemptions)
 - Validation tooling
-
-### standard.md
-Original auto-generated file from the openownership.org scraper. Note: this file contains 500 pages of largely duplicate content (the scraper encountered URL duplication on the BODS site). Prefer `bods.md` for all reference needs.

@@ -33,11 +33,11 @@ bods-skill/
 
 - All three statement types: Entity, Person, Relationship
 - Complete field reference for each statement type
-- Interest type codelist (v0.4 camelCase + v0.3 migration notes)
+- All v0.4 codelists — interest types, unspecified reasons (including exemptions), name types, entity subtypes — with version history
 - `recordDetails`, `recordId`, `recordStatus` (new in v0.4)
 - Identifier schemes (GB-COH, LEI, etc.)
 - Source/provenance structure
-- Full JSON examples: direct ownership, record updates, unknown beneficial owners
+- Full JSON examples, validated with `libcovebods`: direct ownership, record updates, unknown beneficial owners, exemptions from disclosure
 - Validation tooling references
 - Primer, About and Governance pages (2026 documentation rewrite)
 - BODS data model UML: core objects vs. Declaration/Record pseudo-objects

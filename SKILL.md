@@ -22,7 +22,7 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 | Person Statement | `person` | A natural person (beneficial owner or controller) |
 | Relationship Statement | `relationship` | An ownership/control interest between a person/entity and an entity |
 
-> **v0.3 note:** In v0.3, relationship statements were called "ownership-or-control statements" (`ownershipOrControlStatement`). In v0.4 the terminology changed to "relationship statement" (`relationshipStatement`).
+> **v0.3 note:** In v0.3, relationship statements were called "ownership-or-control statements" (`ownershipOrControlStatement`). In v0.4 they are "relationship statements", identified by `recordType: "relationship"` (v0.3 used `statementType: "ownershipOrControlStatement"`).
 
 ---
 
@@ -32,14 +32,18 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 | Field | Type | Notes |
 |---|---|---|
-| `statementId` | string | Globally unique identifier for this statement |
-| `declarationSubject` | string | Links statement to the declaring entity/filing |
-| `declaration` | string | Groups statements by parent declaration |
-| `recordId` | string | Stable ID across statement versions (for the same record) |
+| `statementId` | string | **Required.** Globally unique identifier for this statement (32–64 chars, e.g. a UUID) |
+| `statementDate` | date | **Required.** When the statement was made |
+| `declarationSubject` | string | **Required.** `recordId` of the entity the declaration is about |
+| `recordId` | string | **Required.** Stable ID across statement versions (for the same record) |
+| `recordType` | enum | **Required.** `entity`, `person`, `relationship` |
+| `recordDetails` | object | **Required.** The type-specific payload (see below) |
 | `recordStatus` | enum | `new`, `updated`, `closed` |
-| `recordDetails` | object | Contains the type-specific payload (see below) |
-| `statementDate` | date | When the statement was made |
-| `source` | object | Provenance of the statement |
+| `declaration` | string | Groups statements by parent declaration |
+| `publicationDetails` | object | `publicationDate`, `bodsVersion` (`"0.4"`), `publisher`, `license` |
+| `source` | object | Provenance: `type` is an **array** (`selfDeclaration`, `officialRegister`, `thirdParty`, `primaryResearch`, `verified`) |
+
+Every `recordDetails` requires `isComponent` (boolean).
 
 ---
 
@@ -47,16 +51,19 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 ```json
 {
-  "statementId": "...",
-  "recordId": "...",
-  "recordStatus": "new",
+  "statementId": "1dc0e987-5c57-4a1c-b3ad-61353b66a9b7",
   "statementDate": "2024-01-15",
+  "declarationSubject": "acme-ltd-record",
+  "recordId": "acme-ltd-record",
+  "recordType": "entity",
+  "recordStatus": "new",
   "recordDetails": {
+    "isComponent": false,
     "entityType": {
       "type": "registeredEntity"
     },
     "name": "Acme Holdings Ltd",
-    "incorporatedInJurisdiction": {
+    "jurisdiction": {
       "name": "United Kingdom",
       "code": "GB"
     },
@@ -71,7 +78,8 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
     "addresses": [
       {
         "type": "registered",
-        "address": "123 High Street, London, EC1A 1BB"
+        "address": "123 High Street, London, EC1A 1BB",
+        "country": { "name": "United Kingdom", "code": "GB" }
       }
     ]
   }
@@ -80,7 +88,7 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 **Entity types (`entityType.type`):** `registeredEntity`, `legalEntity`, `arrangement`, `anonymousEntity`, `unknownEntity`, `state`, `stateBody`
 
-**v0.4 addition:** `formedByStatute` object (with `name` and `date`) for state bodies; `entitySubtypeCategory` codelist for state body subtypes.
+**Entity subtypes (`entityType.subtype`):** `governmentDepartment`, `stateAgency` (with `stateBody`); `trust` (with `arrangement` or `legalEntity`); `nomination` (with `arrangement`); `other`. State bodies can also carry a `formedByStatute` object (`name`, `date`).
 
 ---
 
@@ -88,34 +96,37 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 ```json
 {
-  "statementId": "...",
-  "recordId": "...",
-  "recordStatus": "new",
+  "statementId": "019a93f1-e470-42e9-957b-f8ab0a6c2d3e",
   "statementDate": "2024-01-15",
+  "declarationSubject": "acme-ltd-record",
+  "recordId": "jane-smith-record",
+  "recordType": "person",
+  "recordStatus": "new",
   "recordDetails": {
+    "isComponent": false,
     "personType": "knownPerson",
     "names": [
       {
-        "type": "individual",
+        "type": "legal",
         "fullName": "Jane Smith"
       }
     ],
     "identifiers": [
       {
-        "id": "AB123456",
-        "scheme": "GB-PASS",
+        "id": "AB1234567",
+        "scheme": "GBR-PASSPORT",
         "schemeName": "UK Passport"
       }
     ],
     "nationalities": [
-      { "code": "GB", "name": "British" }
+      { "name": "United Kingdom", "code": "GB" }
     ],
     "birthDate": "1975-08-22",
     "addresses": [
       {
         "type": "residence",
         "address": "45 Oak Avenue, London, SW1A 2AA",
-        "country": "GB"
+        "country": { "name": "United Kingdom", "code": "GB" }
       }
     ]
   }
@@ -124,32 +135,31 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 **Person types (`personType`):** `knownPerson`, `anonymousPerson`, `unknownPerson`
 
+**Name types (`names[].type`):** `legal`, `translation`, `transliteration`, `former`, `alternative`, `birth`. There is no `individual` (renamed `legal` in v0.4) and no `alias` (use `alternative`).
+
 ---
 
 ### Relationship Statement (`recordDetails` for relationship)
 
 ```json
 {
-  "statementId": "...",
-  "recordId": "...",
-  "recordStatus": "new",
+  "statementId": "fbfd0547-d0c6-4a00-b559-5c5e91c34f5c",
   "statementDate": "2024-01-15",
+  "declarationSubject": "acme-ltd-record",
+  "recordId": "acme-smith-ownership-record",
+  "recordType": "relationship",
+  "recordStatus": "new",
   "recordDetails": {
-    "subject": {
-      "describedByEntityStatement": "<entity-statement-id>"
-    },
-    "interestedParty": {
-      "describedByPersonStatement": "<person-statement-id>"
-    },
+    "isComponent": false,
+    "subject": "acme-ltd-record",
+    "interestedParty": "jane-smith-record",
     "interests": [
       {
         "type": "shareholding",
         "directOrIndirect": "direct",
         "beneficialOwnershipOrControl": true,
         "share": {
-          "exact": 51,
-          "minimum": 50,
-          "maximum": 75
+          "exact": 51
         },
         "startDate": "2019-06-01"
       },
@@ -158,7 +168,8 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
         "directOrIndirect": "direct",
         "beneficialOwnershipOrControl": true,
         "share": {
-          "exact": 51
+          "minimum": 50,
+          "maximum": 75
         }
       }
     ]
@@ -166,37 +177,60 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 }
 ```
 
+`subject` and `interestedParty` hold the **`recordId`** of the entity/person record (a plain string), or an Unspecified Record object such as `{"reason": "unknown"}` when the party cannot be identified. v0.4 has no `describedByEntityStatement` / `describedByPersonStatement` wrappers — those are v0.3, which also referenced `statementId`s rather than `recordId`s.
+
 ---
 
-## Interest Types (v0.4 codelist — camelCase)
+## Interest Types (v0.4 codelist — 23 codes, closed)
 
-> **v0.3 → v0.4:** Interest type codes changed from hyphenated to camelCase (e.g. `voting-rights` → `votingRights`).
+> **History:** codes were hyphenated up to v0.2 (e.g. `voting-rights`) and became camelCase in **v0.3**. v0.4 added `nominee` and `nominator`; it did not re-spell any codes.
 
 | Code | Meaning |
 |---|---|
-| `shareholding` | Ownership of shares |
-| `votingRights` | Rights to vote at shareholder/member meetings |
-| `appointmentOfBoard` | Power to appoint or remove directors |
-| `otherInfluenceOrControl` | Other means of influence or control |
-| `controlViaCompanyRulesOrArticles` | Control through articles of association or company rules *(new in v0.4)* |
-| `controlByLegalFramework` | Control arising from legal or regulatory framework *(new in v0.4)* |
-| `boardMember` | Membership of board *(new in v0.4)* |
-| `boardChair` | Chair of board *(new in v0.4)* |
-| `unknownInterest` | Type of interest is unknown *(new in v0.4)* |
-| `unpublishedInterest` | Interest exists but is not published *(new in v0.4)* |
-| `enjoymentAndUseOfAssets` | Right to enjoy/use assets *(new in v0.4)* |
-| `rightToProfitOrIncomeFromAssets` | Right to profit or income from assets *(new in v0.4)* |
+| `shareholding` | Economic interest gained by holding shares |
+| `votingRights` | Rights to vote on matters of corporate policy |
+| `appointmentOfBoard` | Absolute right to appoint board members |
+| `otherInfluenceOrControl` | Other influence or control |
+| `seniorManagingOfficial` | Control over management gained by employment |
+| `settlor` | Creator of a trust or similar arrangement |
+| `trustee` | Administers a trust; holds legal title |
+| `protector` | Protects the settlor's interests or wishes |
+| `beneficiaryOfLegalArrangement` | Benefits from a trust or other legal arrangement |
+| `rightsToSurplusAssetsOnDissolution` | Share of surplus assets on winding up |
+| `rightsToProfitOrIncome` | Rights to profits or income granted by contract |
+| `rightsGrantedByContract` | Interest granted by contract |
+| `conditionalRightsGrantedByContract` | Interest existing only if a contractual condition is met |
+| `controlViaCompanyRulesOrArticles` | Control through articles or shareholder agreement *(v0.3)* |
+| `controlByLegalFramework` | Control arising from legislation *(v0.3)* |
+| `boardMember` | Membership of board *(v0.3)* |
+| `boardChair` | Chair of board *(v0.3)* |
+| `unknownInterest` | Interest exists; its nature is unknown *(v0.3)* |
+| `unpublishedInterest` | Nature of interest known but not published *(v0.3)* |
+| `enjoymentAndUseOfAssets` | Use of an entity's assets *(v0.3)* |
+| `rightToProfitOrIncomeFromAssets` | Profits or income from an entity's assets *(v0.3)* |
+| `nominee` | Acts on behalf of a nominator *(v0.4)* |
+| `nominator` | Instructs a nominee *(v0.4)* |
+
+## Unspecified Reasons (v0.4 codelist — 7 codes, closed)
+
+Used in an Unspecified Record (`{"reason": ..., "description": ...}`) when a relationship's `interestedParty` (or `subject`) cannot be identified:
+
+`noBeneficialOwners` · `subjectUnableToConfirmOrIdentifyBeneficialOwner` · `interestedPartyHasNotProvidedInformation` · `subjectExemptFromDisclosure` · `interestedPartyExemptFromDisclosure` · `unknown` · `informationUnknownToPublisher`
+
+An exemption (`subjectExemptFromDisclosure`, `interestedPartyExemptFromDisclosure`) is **not** the same as `noBeneficialOwners`. Full meanings are in `references/bods.md`.
+
+> **Verify codelists before hard-coding them.** Codelists here are summaries; the CSVs in [`schema/codelists/`](https://github.com/openownership/data-standard/tree/0.4.0/schema/codelists) (also bundled in `libcovebods/data/schema-0-4-0/`) are authoritative. Spelling **and** membership changed between versions, so a camelCased older value is not automatically valid v0.4.
 
 ---
 
 ## Key Migration Notes: v0.3 → v0.4
 
-1. **Flattened structure**: Statement fields are now at the top level. Type-specific data moves into `recordDetails`.
+1. **Record-based structure**: type-specific fields move into `recordDetails`; `statementType` is replaced by `recordType`; `statementID` renamed `statementId`; `statementDate` now required.
 2. **Relationship statements**: Previously "ownership-or-control statements" — the concept is the same.
-3. **Record management**: New `recordId`, `recordStatus`, `declaration`, and `declarationSubject` fields.
+3. **Record management**: New `recordId`, `recordStatus`, `declaration`, and `declarationSubject` fields. `subject` / `interestedParty` now hold a `recordId` (or an Unspecified Record), and `replacesStatements` is removed.
 4. **JSON Lines**: v0.4 supports newline-delimited JSON (one statement per line) for large datasets.
-5. **Interest type codelists**: All codes now camelCase; several new codes added.
-6. **Entity enhancements**: `formedByStatute` and `entitySubtypeCategory` added.
+5. **Codelists**: `nominee` and `nominator` added to `interestType`; name type `individual` renamed `legal`; `nomination` and `trust` added to entity subtypes, whose `stateBody-` prefixes were dropped. (The hyphen → camelCase change happened earlier, in v0.3.)
+6. **Entity type**: `entityType` and `entitySubtype` combined — the subtype is now `entityType.subtype`.
 
 ---
 
@@ -292,7 +326,8 @@ The **BODS Data Review Tool** (CoVE-BODS) validates BODS JSON data against the s
 The web tool accepts BODS JSON directly and returns validation results. For CLI use:
 ```bash
 pip install libcovebods
-libcovebods your-data.json
+libcovebods jsonschemavalidate your-data.json   # schema (alias: jsv)
+libcovebods pythonvalidate your-data.json       # extra normative checks (alias: pv)
 ```
 Checks: required fields, valid enums, internal reference integrity, version compliance (BODS 0.1–0.4), plus 26 additional regulatory compliance assessments.
 
