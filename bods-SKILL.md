@@ -80,7 +80,7 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 **Entity types (`entityType.type`):** `registeredEntity`, `legalEntity`, `arrangement`, `anonymousEntity`, `unknownEntity`, `state`, `stateBody`
 
-**v0.4 addition:** `formedByStatute` object (with `name` and `date`) for state bodies; `entitySubtypeCategory` codelist for state body subtypes.
+**Entity subtypes (`entityType.subtype`):** `governmentDepartment`, `stateAgency` (with `stateBody`); `trust` (with `arrangement` or `legalEntity`); `nomination` (with `arrangement`); `other`. State bodies can also carry a `formedByStatute` object (`name`, `date`).
 
 ---
 
@@ -96,7 +96,7 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
     "personType": "knownPerson",
     "names": [
       {
-        "type": "individual",
+        "type": "legal",
         "fullName": "Jane Smith"
       }
     ],
@@ -123,6 +123,8 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 ```
 
 **Person types (`personType`):** `knownPerson`, `anonymousPerson`, `unknownPerson`
+
+**Name types (`names[].type`):** `legal`, `translation`, `transliteration`, `former`, `alternative`, `birth`. There is no `individual` (renamed `legal` in v0.4) and no `alias` (use `alternative`).
 
 ---
 
@@ -168,24 +170,45 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 ---
 
-## Interest Types (v0.4 codelist — camelCase)
+## Interest Types (v0.4 codelist — 23 codes, closed)
 
-> **v0.3 → v0.4:** Interest type codes changed from hyphenated to camelCase (e.g. `voting-rights` → `votingRights`).
+> **History:** codes were hyphenated up to v0.2 (e.g. `voting-rights`) and became camelCase in **v0.3**. v0.4 added `nominee` and `nominator`; it did not re-spell any codes.
 
 | Code | Meaning |
 |---|---|
-| `shareholding` | Ownership of shares |
-| `votingRights` | Rights to vote at shareholder/member meetings |
-| `appointmentOfBoard` | Power to appoint or remove directors |
-| `otherInfluenceOrControl` | Other means of influence or control |
-| `controlViaCompanyRulesOrArticles` | Control through articles of association or company rules *(new in v0.4)* |
-| `controlByLegalFramework` | Control arising from legal or regulatory framework *(new in v0.4)* |
-| `boardMember` | Membership of board *(new in v0.4)* |
-| `boardChair` | Chair of board *(new in v0.4)* |
-| `unknownInterest` | Type of interest is unknown *(new in v0.4)* |
-| `unpublishedInterest` | Interest exists but is not published *(new in v0.4)* |
-| `enjoymentAndUseOfAssets` | Right to enjoy/use assets *(new in v0.4)* |
-| `rightToProfitOrIncomeFromAssets` | Right to profit or income from assets *(new in v0.4)* |
+| `shareholding` | Economic interest gained by holding shares |
+| `votingRights` | Rights to vote on matters of corporate policy |
+| `appointmentOfBoard` | Absolute right to appoint board members |
+| `otherInfluenceOrControl` | Other influence or control |
+| `seniorManagingOfficial` | Control over management gained by employment |
+| `settlor` | Creator of a trust or similar arrangement |
+| `trustee` | Administers a trust; holds legal title |
+| `protector` | Protects the settlor's interests or wishes |
+| `beneficiaryOfLegalArrangement` | Benefits from a trust or other legal arrangement |
+| `rightsToSurplusAssetsOnDissolution` | Share of surplus assets on winding up |
+| `rightsToProfitOrIncome` | Rights to profits or income granted by contract |
+| `rightsGrantedByContract` | Interest granted by contract |
+| `conditionalRightsGrantedByContract` | Interest existing only if a contractual condition is met |
+| `controlViaCompanyRulesOrArticles` | Control through articles or shareholder agreement *(v0.3)* |
+| `controlByLegalFramework` | Control arising from legislation *(v0.3)* |
+| `boardMember` | Membership of board *(v0.3)* |
+| `boardChair` | Chair of board *(v0.3)* |
+| `unknownInterest` | Interest exists; its nature is unknown *(v0.3)* |
+| `unpublishedInterest` | Nature of interest known but not published *(v0.3)* |
+| `enjoymentAndUseOfAssets` | Use of an entity's assets *(v0.3)* |
+| `rightToProfitOrIncomeFromAssets` | Profits or income from an entity's assets *(v0.3)* |
+| `nominee` | Acts on behalf of a nominator *(v0.4)* |
+| `nominator` | Instructs a nominee *(v0.4)* |
+
+## Unspecified Reasons (v0.4 codelist — 7 codes, closed)
+
+Used in an Unspecified Record (`{"reason": ..., "description": ...}`) when a relationship's `interestedParty` (or `subject`) cannot be identified:
+
+`noBeneficialOwners` · `subjectUnableToConfirmOrIdentifyBeneficialOwner` · `interestedPartyHasNotProvidedInformation` · `subjectExemptFromDisclosure` · `interestedPartyExemptFromDisclosure` · `unknown` · `informationUnknownToPublisher`
+
+An exemption (`subjectExemptFromDisclosure`, `interestedPartyExemptFromDisclosure`) is **not** the same as `noBeneficialOwners`. Full meanings are in `references/bods.md`.
+
+> **Verify codelists before hard-coding them.** Codelists here are summaries; the CSVs in [`schema/codelists/`](https://github.com/openownership/data-standard/tree/0.4.0/schema/codelists) (also bundled in `libcovebods/data/schema-0-4-0/`) are authoritative. Spelling **and** membership changed between versions, so a camelCased older value is not automatically valid v0.4.
 
 ---
 
@@ -195,8 +218,8 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 2. **Relationship statements**: Previously "ownership-or-control statements" — the concept is the same.
 3. **Record management**: New `recordId`, `recordStatus`, `declaration`, and `declarationSubject` fields.
 4. **JSON Lines**: v0.4 supports newline-delimited JSON (one statement per line) for large datasets.
-5. **Interest type codelists**: All codes now camelCase; several new codes added.
-6. **Entity enhancements**: `formedByStatute` and `entitySubtypeCategory` added.
+5. **Codelists**: `nominee` and `nominator` added to `interestType`; name type `individual` renamed `legal`; `nomination` and `trust` added to entity subtypes, whose `stateBody-` prefixes were dropped. (The hyphen → camelCase change happened earlier, in v0.3.)
+6. **Entity type**: `entityType` and `entitySubtype` combined — the subtype is now `entityType.subtype`.
 
 ---
 

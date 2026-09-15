@@ -88,7 +88,7 @@ Describes a legal entity: a company, trust, foundation, or other arrangement.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `entityType` | object | Yes | Type classification of the entity (see below). |
+| `entityType` | object | Yes | `{ "type": ..., "subtype": ..., "details": ... }` — `type` required; `subtype` from the entitySubtype codelist (see [Codelists](#codelists)); `details` for a local name for the entity form. In v0.4 this replaces v0.3's separate `entitySubtype` / `entitySubtypeCategory`. |
 | `name` | string | No | Primary name of the entity. |
 | `alternateNames` | array[string] | No | Other names by which the entity is known. |
 | `incorporatedInJurisdiction` | object | No | Jurisdiction of incorporation (`name`, `code` using ISO 3166-1 alpha-2). |
@@ -97,8 +97,7 @@ Describes a legal entity: a company, trust, foundation, or other arrangement.
 | `dissolutionDate` | date | No | Date entity was dissolved/wound up. |
 | `addresses` | array | No | Registered or operational addresses. |
 | `uri` | string | No | URI for the entity's official record. |
-| `formedByStatute` | object | No | *(v0.4 new)* For state bodies formed by legislation: `{ "name": "Act name", "date": "YYYY-MM-DD" }`. |
-| `entitySubtypeCategory` | enum | No | *(v0.4 new)* Subtype for state bodies — e.g. `stateAuthority`, `stateCorporation`. |
+| `formedByStatute` | object | No | *(v0.3)* For state bodies formed by legislation: `{ "name": "Act name", "date": "YYYY-MM-DD" }`. |
 
 ### Entity type codes (`entityType.type`)
 
@@ -137,7 +136,7 @@ Describes a natural person — a beneficial owner, controller, or other interest
 
 ```json
 {
-  "type": "individual",
+  "type": "legal",
   "fullName": "Jane Elizabeth Smith",
   "familyName": "Smith",
   "givenName": "Jane",
@@ -145,7 +144,20 @@ Describes a natural person — a beneficial owner, controller, or other interest
 }
 ```
 
-**Name types:** `individual`, `translation`, `former`, `alias`, `birth`
+`fullName` is required on every name object.
+
+**Name types (`nameType` codelist, closed):**
+
+| Code | Meaning |
+|---|---|
+| `legal` | The name used for legal, administrative and other official purposes — usually the one on official government documents |
+| `translation` | A translation of the legal name in a different language |
+| `transliteration` | A transliteration of the legal name in a different script |
+| `former` | A name the person has used in the past |
+| `alternative` | Another name the person is known by — an alias, a nickname or an "also known as" |
+| `birth` | The legal name of the person at birth |
+
+> There is **no** `individual` code (renamed to `legal` in v0.4) and **no** `alias` code (use `alternative`). When picking a display name from `names`, prefer `type == "legal"` — do not rely on array order.
 
 ---
 
@@ -168,12 +180,26 @@ When the interested party cannot be identified:
 ```json
 {
   "unspecified": {
-    "reason": "unknown-unknown",
+    "reason": "unknown",
     "description": "The beneficial owner could not be determined."
   }
 }
 ```
-**Unspecified reasons:** `no-beneficial-owners`, `subject-unable-to-confirm`, `information-unknown-to-register`, `interested-party-has-not-responded`, `unknown-unknown`
+**Unspecified reasons (`unspecifiedReason` codelist, closed — seven codes):**
+
+| Code | Meaning |
+|---|---|
+| `noBeneficialOwners` | There are no beneficial owners who need to disclose ownership under the rules the statement is made under |
+| `subjectUnableToConfirmOrIdentifyBeneficialOwner` | The subject, as the disclosing party, has been unwilling or unable to confirm or identify a beneficial owner |
+| `interestedPartyHasNotProvidedInformation` | The interested party has not provided enough information to identify or confirm the beneficial owner |
+| `subjectExemptFromDisclosure` | The subject is not required to disclose its beneficial owner |
+| `interestedPartyExemptFromDisclosure` | The interested party is exempt from having their identity disclosed |
+| `unknown` | The reason the party cannot be provided is not known |
+| `informationUnknownToPublisher` | The publisher does not have access to the information. Should not generally be used where one party has the responsibility to provide it |
+
+> **Exemption ≠ no beneficial owner.** `subjectExemptFromDisclosure` ("we were never required to look") asserts something materially different from `noBeneficialOwners` ("we looked and there is none"). Don't collapse exemptions onto `noBeneficialOwners`.
+>
+> These codes have been camelCase since v0.3 (hyphenated in v0.2, e.g. `subject-exempt-from-disclosure`). Values such as `unknown-unknown`, `unknownUnknown` or `information-unknown-to-register` do not exist in any BODS version.
 
 ---
 
@@ -209,24 +235,37 @@ Provide `exact` when known. Use `minimum`/`maximum` for ranges (inclusive bounds
 
 ## Codelists
 
-### Interest types (v0.4 — camelCase)
+> **Codelist values in this file are BODS v0.4.** They are summaries — the CSVs in [`schema/codelists/`](https://github.com/openownership/data-standard/tree/0.4.0/schema/codelists) (or `libcovebods/data/schema-0-4-0/`) are authoritative. Check there before hard-coding values in a mapper: codelist spelling **and** membership have changed between versions, so a camelCased old value is not automatically a valid v0.4 value. All BODS v0.4 codelists are closed (`openCodelist: false`), so an unlisted value fails schema validation.
 
-| Code | Added | Description |
+### Interest types (`interestType`, 23 codes)
+
+| Code | Introduced | Description |
 |---|---|---|
-| `shareholding` | v0.1 | Ownership of shares/equity |
-| `votingRights` | v0.1 | Rights to vote |
-| `appointmentOfBoard` | v0.1 | Power to appoint/remove board members |
-| `otherInfluenceOrControl` | v0.1 | Other influence or control not captured elsewhere |
-| `controlViaCompanyRulesOrArticles` | v0.4 | Control through articles or company constitution |
-| `controlByLegalFramework` | v0.4 | Control arising from law or regulation |
-| `boardMember` | v0.4 | Membership of governing board |
-| `boardChair` | v0.4 | Chair of governing board |
-| `unknownInterest` | v0.4 | Type of interest is unknown |
-| `unpublishedInterest` | v0.4 | Interest exists but is not published |
-| `enjoymentAndUseOfAssets` | v0.4 | Right to enjoy or use assets |
-| `rightToProfitOrIncomeFromAssets` | v0.4 | Right to profit or income from assets |
+| `shareholding` | ≤ v0.2 | Economic interest gained by holding shares |
+| `votingRights` | ≤ v0.2 | Controlling interest from the right to vote on matters of corporate policy |
+| `appointmentOfBoard` | ≤ v0.2 | Absolute right to appoint members of the board |
+| `otherInfluenceOrControl` | ≤ v0.2 | Influence or control distinct from shareholding, voting rights or board appointment |
+| `seniorManagingOfficial` | ≤ v0.2 | Control over the management of the entity gained by employment |
+| `settlor` | ≤ v0.2 | Person who creates a trust (or settlor-equivalent in a similar arrangement) |
+| `trustee` | ≤ v0.2 | Person who administers a trust and holds legal title to its property |
+| `protector` | ≤ v0.2 | Person appointed to protect the settlor's interests or wishes |
+| `beneficiaryOfLegalArrangement` | ≤ v0.2 | Person who benefits from a trust or other legal arrangement |
+| `rightsToSurplusAssetsOnDissolution` | ≤ v0.2 | Right to a share of surplus assets on winding up |
+| `rightsToProfitOrIncome` | ≤ v0.2 | Rights to receive profits or income, granted by contract |
+| `rightsGrantedByContract` | ≤ v0.2 | An interest granted by contract |
+| `conditionalRightsGrantedByContract` | ≤ v0.2 | An interest that exists only if a contractual condition is met |
+| `controlViaCompanyRulesOrArticles` | v0.3 | Control through company articles or a shareholder agreement |
+| `controlByLegalFramework` | v0.3 | Control arising from legislation (typically state-linked entities) |
+| `boardMember` | v0.3 | Member of the governing board |
+| `boardChair` | v0.3 | Chair of the board |
+| `unknownInterest` | v0.3 | An interest is known to exist but its nature is unknown |
+| `unpublishedInterest` | v0.3 | The nature of the interest is known but not published |
+| `enjoymentAndUseOfAssets` | v0.3 | Use of assets belonging to an entity |
+| `rightToProfitOrIncomeFromAssets` | v0.3 | Right to profits or income from an entity's assets |
+| `nominee` | v0.4 | Person who acts on behalf of a nominator in a specified capacity |
+| `nominator` | v0.4 | Person who instructs a nominee to act on their behalf |
 
-> **v0.3 migration:** Codes were hyphenated in v0.3 (e.g. `voting-rights`, `appointment-of-board`). In v0.4 all codes use camelCase.
+> **Version history:** codes were hyphenated up to v0.2 (e.g. `voting-rights`, `settlor-of-trust`) and became camelCase in **v0.3**, when the trust codes also lost `OfTrust` (`beneficiary-of-trust` → `beneficiaryOfLegalArrangement`) and `other-influence-or-control-of-trust` was removed. v0.4 added `nominee` and `nominator`.
 
 ### Record status
 
@@ -243,6 +282,20 @@ Provide `exact` when known. Use `minimum`/`maximum` for ranges (inclusive bounds
 ### Direct or indirect
 
 `direct` | `indirect` | `unknown`
+
+### Entity subtype (`entityType.subtype`)
+
+| Code | Allowed with `entityType.type` |
+|---|---|
+| `governmentDepartment` | `stateBody` |
+| `stateAgency` | `stateBody` |
+| `trust` | `arrangement` or `legalEntity` |
+| `nomination` | `arrangement` |
+| `other` | any |
+
+### Record type (`recordType`)
+
+`entity` | `person` | `relationship`
 
 ---
 
@@ -291,7 +344,7 @@ The `source` object records where the information came from.
 }
 ```
 
-**Source types:** `officialRegister`, `selfDeclaration`, `thirdParty`, `primaryResearch`, `verified`, `other`
+`source.type` is an **array** of codes. **Source types:** `selfDeclaration`, `officialRegister`, `thirdParty`, `primaryResearch`, `verified` (add `verified` alongside another code when the information has been through a verification process). There is no `other` code.
 
 ---
 
@@ -306,7 +359,7 @@ The `source` object records where the information came from.
 }
 ```
 
-**Address types:** `registered`, `service`, `residence`, `business`, `alternative`
+**Address types:** `placeOfBirth` (persons, `placeOfBirth` field only), `residence` (persons only), `registered` (entities only), `service` (persons only), `alternative`, `business`
 
 ---
 
@@ -336,7 +389,7 @@ The `source` object records where the information came from.
     "recordStatus": "new",
     "recordDetails": {
       "personType": "knownPerson",
-      "names": [{ "type": "individual", "fullName": "Jane Smith" }],
+      "names": [{ "type": "legal", "fullName": "Jane Smith" }],
       "nationalities": [{ "code": "GB", "name": "British" }],
       "birthDate": "1975-08-22"
     }
@@ -403,7 +456,7 @@ The `source` object records where the information came from.
     "subject": { "describedByEntityStatement": "entity-acme-001" },
     "interestedParty": {
       "unspecified": {
-        "reason": "information-unknown-to-register",
+        "reason": "informationUnknownToPublisher",
         "description": "The register does not hold beneficial owner information for this entity."
       }
     },
