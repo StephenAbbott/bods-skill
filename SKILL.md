@@ -22,7 +22,7 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 | Person Statement | `person` | A natural person (beneficial owner or controller) |
 | Relationship Statement | `relationship` | An ownership/control interest between a person/entity and an entity |
 
-> **v0.3 note:** In v0.3, relationship statements were called "ownership-or-control statements" (`ownershipOrControlStatement`). In v0.4 the terminology changed to "relationship statement" (`relationshipStatement`).
+> **v0.3 note:** In v0.3, relationship statements were called "ownership-or-control statements" (`ownershipOrControlStatement`). In v0.4 they are "relationship statements", identified by `recordType: "relationship"` (v0.3 used `statementType: "ownershipOrControlStatement"`).
 
 ---
 
@@ -32,14 +32,18 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 | Field | Type | Notes |
 |---|---|---|
-| `statementId` | string | Globally unique identifier for this statement |
-| `declarationSubject` | string | Links statement to the declaring entity/filing |
-| `declaration` | string | Groups statements by parent declaration |
-| `recordId` | string | Stable ID across statement versions (for the same record) |
+| `statementId` | string | **Required.** Globally unique identifier for this statement (32–64 chars, e.g. a UUID) |
+| `statementDate` | date | **Required.** When the statement was made |
+| `declarationSubject` | string | **Required.** `recordId` of the entity the declaration is about |
+| `recordId` | string | **Required.** Stable ID across statement versions (for the same record) |
+| `recordType` | enum | **Required.** `entity`, `person`, `relationship` |
+| `recordDetails` | object | **Required.** The type-specific payload (see below) |
 | `recordStatus` | enum | `new`, `updated`, `closed` |
-| `recordDetails` | object | Contains the type-specific payload (see below) |
-| `statementDate` | date | When the statement was made |
-| `source` | object | Provenance of the statement |
+| `declaration` | string | Groups statements by parent declaration |
+| `publicationDetails` | object | `publicationDate`, `bodsVersion` (`"0.4"`), `publisher`, `license` |
+| `source` | object | Provenance: `type` is an **array** (`selfDeclaration`, `officialRegister`, `thirdParty`, `primaryResearch`, `verified`) |
+
+Every `recordDetails` requires `isComponent` (boolean).
 
 ---
 
@@ -47,16 +51,19 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 ```json
 {
-  "statementId": "...",
-  "recordId": "...",
-  "recordStatus": "new",
+  "statementId": "1dc0e987-5c57-4a1c-b3ad-61353b66a9b7",
   "statementDate": "2024-01-15",
+  "declarationSubject": "acme-ltd-record",
+  "recordId": "acme-ltd-record",
+  "recordType": "entity",
+  "recordStatus": "new",
   "recordDetails": {
+    "isComponent": false,
     "entityType": {
       "type": "registeredEntity"
     },
     "name": "Acme Holdings Ltd",
-    "incorporatedInJurisdiction": {
+    "jurisdiction": {
       "name": "United Kingdom",
       "code": "GB"
     },
@@ -71,7 +78,8 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
     "addresses": [
       {
         "type": "registered",
-        "address": "123 High Street, London, EC1A 1BB"
+        "address": "123 High Street, London, EC1A 1BB",
+        "country": { "name": "United Kingdom", "code": "GB" }
       }
     ]
   }
@@ -88,11 +96,14 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 ```json
 {
-  "statementId": "...",
-  "recordId": "...",
-  "recordStatus": "new",
+  "statementId": "019a93f1-e470-42e9-957b-f8ab0a6c2d3e",
   "statementDate": "2024-01-15",
+  "declarationSubject": "acme-ltd-record",
+  "recordId": "jane-smith-record",
+  "recordType": "person",
+  "recordStatus": "new",
   "recordDetails": {
+    "isComponent": false,
     "personType": "knownPerson",
     "names": [
       {
@@ -102,20 +113,20 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
     ],
     "identifiers": [
       {
-        "id": "AB123456",
-        "scheme": "GB-PASS",
+        "id": "AB1234567",
+        "scheme": "GBR-PASSPORT",
         "schemeName": "UK Passport"
       }
     ],
     "nationalities": [
-      { "code": "GB", "name": "British" }
+      { "name": "United Kingdom", "code": "GB" }
     ],
     "birthDate": "1975-08-22",
     "addresses": [
       {
         "type": "residence",
         "address": "45 Oak Avenue, London, SW1A 2AA",
-        "country": "GB"
+        "country": { "name": "United Kingdom", "code": "GB" }
       }
     ]
   }
@@ -132,26 +143,23 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
 
 ```json
 {
-  "statementId": "...",
-  "recordId": "...",
-  "recordStatus": "new",
+  "statementId": "fbfd0547-d0c6-4a00-b559-5c5e91c34f5c",
   "statementDate": "2024-01-15",
+  "declarationSubject": "acme-ltd-record",
+  "recordId": "acme-smith-ownership-record",
+  "recordType": "relationship",
+  "recordStatus": "new",
   "recordDetails": {
-    "subject": {
-      "describedByEntityStatement": "<entity-statement-id>"
-    },
-    "interestedParty": {
-      "describedByPersonStatement": "<person-statement-id>"
-    },
+    "isComponent": false,
+    "subject": "acme-ltd-record",
+    "interestedParty": "jane-smith-record",
     "interests": [
       {
         "type": "shareholding",
         "directOrIndirect": "direct",
         "beneficialOwnershipOrControl": true,
         "share": {
-          "exact": 51,
-          "minimum": 50,
-          "maximum": 75
+          "exact": 51
         },
         "startDate": "2019-06-01"
       },
@@ -160,13 +168,16 @@ There are three statement types, nested inside a `recordDetails` object (v0.4):
         "directOrIndirect": "direct",
         "beneficialOwnershipOrControl": true,
         "share": {
-          "exact": 51
+          "minimum": 50,
+          "maximum": 75
         }
       }
     ]
   }
 }
 ```
+
+`subject` and `interestedParty` hold the **`recordId`** of the entity/person record (a plain string), or an Unspecified Record object such as `{"reason": "unknown"}` when the party cannot be identified. v0.4 has no `describedByEntityStatement` / `describedByPersonStatement` wrappers — those are v0.3, which also referenced `statementId`s rather than `recordId`s.
 
 ---
 
@@ -214,9 +225,9 @@ An exemption (`subjectExemptFromDisclosure`, `interestedPartyExemptFromDisclosur
 
 ## Key Migration Notes: v0.3 → v0.4
 
-1. **Flattened structure**: Statement fields are now at the top level. Type-specific data moves into `recordDetails`.
+1. **Record-based structure**: type-specific fields move into `recordDetails`; `statementType` is replaced by `recordType`; `statementID` renamed `statementId`; `statementDate` now required.
 2. **Relationship statements**: Previously "ownership-or-control statements" — the concept is the same.
-3. **Record management**: New `recordId`, `recordStatus`, `declaration`, and `declarationSubject` fields.
+3. **Record management**: New `recordId`, `recordStatus`, `declaration`, and `declarationSubject` fields. `subject` / `interestedParty` now hold a `recordId` (or an Unspecified Record), and `replacesStatements` is removed.
 4. **JSON Lines**: v0.4 supports newline-delimited JSON (one statement per line) for large datasets.
 5. **Codelists**: `nominee` and `nominator` added to `interestType`; name type `individual` renamed `legal`; `nomination` and `trust` added to entity subtypes, whose `stateBody-` prefixes were dropped. (The hyphen → camelCase change happened earlier, in v0.3.)
 6. **Entity type**: `entityType` and `entitySubtype` combined — the subtype is now `entityType.subtype`.
@@ -315,7 +326,8 @@ The **BODS Data Review Tool** (CoVE-BODS) validates BODS JSON data against the s
 The web tool accepts BODS JSON directly and returns validation results. For CLI use:
 ```bash
 pip install libcovebods
-libcovebods your-data.json
+libcovebods jsonschemavalidate your-data.json   # schema (alias: jsv)
+libcovebods pythonvalidate your-data.json       # extra normative checks (alias: pv)
 ```
 Checks: required fields, valid enums, internal reference integrity, version compliance (BODS 0.1–0.4), plus 26 additional regulatory compliance assessments.
 
